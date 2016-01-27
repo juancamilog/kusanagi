@@ -1,0 +1,68 @@
+\begin{thebibliography}{10}
+
+\bibitem{Bagnell2001}
+James~A. Bagnell and Jeff~G. Schneider.
+\newblock Autonomous {Helicopter Control using Reinforcement Learning Policy
+  Search Methods}.
+\newblock In {\em Proceedings of the International Conference on Robotics and
+  Automation}, 2001.
+
+\bibitem{Deisenroth2010b}
+Marc~P. Deisenroth.
+\newblock {\em Efficient {Reinforcement Learning using Gaussian Processes}},
+  volume~9 of {\em Karlsruhe Series on Intelligent Sensor-Actuator-Systems}.
+\newblock KIT Scientific Publishing, November 2010.
+\newblock ISBN 978-3-86644-569-7.
+
+\bibitem{Deisenroth2011c}
+Marc~P. Deisenroth and Carl~E. Rasmussen.
+\newblock P{ILCO: A Model-Based and Data-Efficient Approach to Policy Search}.
+\newblock In {\em Proceedings of the International Conference on Machine
+  Learning}, pages 465--472, New York, NY, USA, June 2011. ACM.
+
+\bibitem{Deisenroth2011b}
+Marc~P. Deisenroth, Carl~E. Rasmussen, and Dieter Fox.
+\newblock Learning {to Control a Low-Cost Manipulator using Data-Efficient
+  Reinforcement Learning}.
+\newblock In {\em Proceedings of the International Conference on Robotics:
+  Science and Systems}, Los Angeles, CA, USA, June 2011.
+
+\bibitem{Forster2009}
+David Forster.
+\newblock Robotic {Unicycle}.
+\newblock Report, Department of Engineering, University of Cambridge, UK, 2009.
+
+\bibitem{Quinonero-Candela2003a}
+Joaquin {Qui{\~n}onero-Candela}, Agathe Girard, Jan Larsen, and Carl~E.
+  Rasmussen.
+\newblock Propagation {of Uncertainty in Bayesian Kernel Models---Application
+  to Multiple-Step Ahead Forecasting}.
+\newblock In {\em IEEE International Conference on Acoustics, Speech and Signal
+  Processing}, volume~2, pages 701--704, April 2003.
+
+\bibitem{Rasmussen2006}
+Carl~E. Rasmussen and Christopher K.~I. Williams.
+\newblock {\em Gaussian {Processes for Machine Learning}}.
+\newblock Adaptive Computation and Machine Learning. The MIT Press, Cambridge,
+  MA, USA, 2006.
+
+\bibitem{Snelson2006}
+Edward Snelson and Zoubin Ghahramani.
+\newblock Sparse {Gaussian Processes using Pseudo-inputs}.
+\newblock In Y.~Weiss, B.~Sch\"{o}lkopf, and J.~C. Platt, editors, {\em
+  Advances in {Neural Information Processing Systems} 18}, pages 1257--1264.
+  The MIT Press, Cambridge, MA, USA, 2006.
+
+\bibitem{Spong1995}
+Mark~W. Spong and Daniel~J. Block.
+\newblock The {Pendubot: A Mechatronic System for Control Research and
+  Education}.
+\newblock In {\em Proceedings of the Conference on Decision and Control}, pages
+  555--557, 1995.
+
+\bibitem{Sutton1998}
+Richard~S. Sutton and Andrew~G. Barto.
+\newblock {\em Reinforcement {Learning: An Introduction}}.
+\newblock The MIT Press, 1998.
+
+\end{thebibliography}
