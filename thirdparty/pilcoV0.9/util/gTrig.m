@@ -41,7 +41,6 @@ if nargin == 3, e = ones(I,1); else e = e(:); end; ee = reshape([e e]',2*I,1);
 mi(1:I,1) = m(i); vi = v(i,i); vii(1:I,1) = diag(vi);     % short-hand notation
 
 M(Is,1) = e.*exp(-vii/2).*sin(mi); M(Ic,1) = e.*exp(-vii/2).*cos(mi);    % mean
-
 lq = -bsxfun(@plus,vii,vii')/2; q = exp(lq);
 U1 = (exp(lq+vi)-q).*sin(bsxfun(@minus,mi,mi'));
 U2 = (exp(lq-vi)-q).*sin(bsxfun(@plus,mi,mi'));

@@ -19,7 +19,10 @@
 
 %% Code
 
-rand('seed',1); randn('seed',1); format short; format compact; 
+%rand('seed',1); randn('seed',1);
+%format short; format compact;
+format long;
+py.numpy.random.seed(int64(31337));
 % include some paths
 try
   rd = '../../';
@@ -66,7 +69,7 @@ H = ceil(T/dt);                    % prediction steps (optimization horizon)
 mu0 = [0 0 0 0]';                  % initial state mean
 S0 = diag([0.1 0.1 0.1 0.1].^2);   % initial state covariance
 N = 15;                            % number controller optimizations
-J = 1;                             % initial J trajectories of length H
+J = 5;                             % initial J trajectories of length H
 K = 1;                             % no. of initial states for which we optimize
 nc = 10;                          % number of controller basis functions
 
@@ -93,10 +96,9 @@ policy.maxU = 10;                                         % max. amplitude of
 mm = [mu0; mm]; cc = S0*cc; ss = [S0 cc; cc' ss];         % in complex plane          
 policy.p.inputs = gaussian(mm(poli), ss(poli,poli), nc)'; % init. location of 
                                                           % basis functions
-policy.p.targets = 0.1*randn(nc, length(policy.maxU));    % init. policy targets 
+policy.p.targets = 0.1*pyrandn(nc, length(policy.maxU));    % init. policy targets 
                                                           % (close to zero)
 policy.p.hyp = log([1 1 1 0.7 0.7 1 0.01])';              % initialize policy
-                                                          % hyper-parameters
 
 % 5. Set up the cost structure
 cost.fcn = @loss_cp;                       % cost function

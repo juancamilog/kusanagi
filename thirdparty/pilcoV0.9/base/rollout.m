@@ -50,7 +50,6 @@
 
 function [x y L latent] = rollout(start, policy, H, plant, cost)
 %% Code
-
 if isfield(plant,'augment'), augi = plant.augi;             % sort out indices!
 else plant.augment = inline('[]'); augi = []; end
 if isfield(plant,'subplant'), subi = plant.subi;
@@ -61,7 +60,7 @@ nX = length(simi)+length(augi); nU = length(policy.maxU); nA = length(angi);
 
 state(simi) = start; state(augi) = plant.augment(state);      % initializations
 x = zeros(H+1, nX+2*nA);
-x(1,simi) = start' + randn(size(simi))*chol(plant.noise);
+x(1,simi) = start' + pyrandn(size(simi))*chol(plant.noise);
 x(1,augi) = plant.augment(x(1,:));
 u = zeros(H, nU); latent = zeros(H+1, size(state,2)+nU);
 y = zeros(H, nX); L = zeros(1, H); next = zeros(1,length(simi));
@@ -74,10 +73,9 @@ for i = 1:H % --------------------------------------------- generate trajectory
   if isfield(policy, 'fcn')
     u(i,:) = policy.fcn(policy,s(poli),zeros(length(poli)));
   else
-    u(i,:) = policy.maxU.*(2*rand(1,nU)-1);
+    u(i,:) = policy.maxU.*(2*pyrand(1,nU)-1);
   end
   latent(i,:) = [state u(i,:)];                                  % latent state
-
   % 2. Simulate dynamics -------------------------------------------------------
   next(odei) = simulate(state(odei), u(i,:), plant);
   next(subi) = plant.subplant(state, u(i,:));
@@ -91,7 +89,7 @@ for i = 1:H % --------------------------------------------- generate trajectory
 
   % 4. Augment state and randomize ---------------------------------------------
   state(simi) = next(simi); state(augi) = plant.augment(state);
-  x(i+1,simi) = state(simi) + randn(size(simi))*chol(plant.noise);
+  x(i+1,simi) = state(simi) + pyrandn(size(simi))*chol(plant.noise);
   x(i+1,augi) = plant.augment(x(i+1,:));
   
   % 5. Compute Cost ------------------------------------------------------------

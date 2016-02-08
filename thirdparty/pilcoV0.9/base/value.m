@@ -38,8 +38,11 @@ function [J, dJdp] = value(p, m0, S0, dynmodel, policy, plant, cost, H)
 %% Code
 
 policy.p = p;            % overwrite policy.p with new parameters from minimize
+policy.p
 p = unwrap(policy.p); dp = 0*p;
 m = m0; S = S0; L = zeros(1,H);
+disp(['p:', num2str(length(p))])
+p
 
 if nargout <= 1                                       % no derivatives required
   
@@ -52,7 +55,7 @@ else                                               % otherwise, get derivatives
   
   dmOdp = zeros([size(m0,1), length(p)]);
   dSOdp = zeros([size(m0,1)*size(m0,1), length(p)]);
-  
+
   for t = 1:H                                  % for all time steps in horizon
     [m, S, dmdmO, dSdmO, dmdSO, dSdSO, dmdp, dSdp] = ...
       plant.prop(m, S, plant, dynmodel, policy); % get next state

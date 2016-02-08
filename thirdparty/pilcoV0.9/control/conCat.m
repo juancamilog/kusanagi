@@ -74,7 +74,6 @@ else             % with derivatives
   [M(j), S(j,j), Q, Mdm(j,:), Sdm(jj,:), dQdm, Mds(j,:), ...
     Sds(jj,:), dQds, Mdp, Sdp, dQdp] = con(policy, m, s);
   q = S(i,i)*Q; S(i,j) = q; S(j,i) = q';  % compute joint covariance S=cov(x,v)
-  
   % update the derivatives
   SS = kron(eye(E),S(i,i)); QQ = kron(Q',eye(D));
   Sdm(ij,:) = SS*dQdm;      Sdm(ji,:) = Sdm(ij,:);
@@ -82,7 +81,6 @@ else             % with derivatives
   
   % 2. Apply Saturation -------------------------------------------------------
   [M, S, R, MdM, SdM, RdM, MdS, SdS, RdS] = sat(M, S, j, maxU);
-  
   % apply chain-rule to compute derivatives after concatenation
   dMdm = MdM*Mdm + MdS*Sdm; dMds = MdM*Mds + MdS*Sds;
   dSdm = SdM*Mdm + SdS*Sdm; dSds = SdM*Mds + SdS*Sds;

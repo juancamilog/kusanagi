@@ -29,7 +29,9 @@ try
 catch
 end
 
-rand('seed',1); randn('seed',1); format short; format compact; 
+%rand('seed',1); randn('seed',1); format short; format compact; 
+format long;
+py.numpy.random.seed(int64(31337));
 
 % 1. Define state and important indices
 
@@ -99,7 +101,7 @@ policy.maxU = [2 2];                                      % max. amplitude of
 mm = [mu0; mm]; cc = S0*cc; ss = [S0 cc; cc' ss];         % in complex plane      
 policy.p.inputs = gaussian(mm(poli), ss(poli,poli), nc)'; % init. location of 
                                                           % basis functions
-policy.p.targets = 0.1*randn(nc, length(policy.maxU));    % init. policy targets 
+policy.p.targets = 0.1*pyrandn(nc, length(policy.maxU));    % init. policy targets 
                                                           % (close to zero)
 policy.p.hyp = ...                                        % initialize policy
   repmat(log([1 1 0.7 0.7 0.7 0.7 1 0.01]'), 1,2);        % hyper-parameters

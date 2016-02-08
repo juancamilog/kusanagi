@@ -21,8 +21,10 @@ basename = 'cartPole_';           % filename used for saving data
 
 % 2. Initial J random rollouts
 for jj = 1:J
+    start = gaussian(mu0,S0);
   [xx, yy, realCost{jj}, latent{jj}] = ...
-    rollout(gaussian(mu0, S0), struct('maxU',policy.maxU), H, plant, cost);
+    rollout(start, policy, H, plant, cost);
+    %rollout(start, struct('maxU',policy.maxU), H, plant, cost);
   x = [x; xx]; y = [y; yy];       % augment training sets for dynamics model
   if plotting.verbosity > 0;      % visualization of trajectory
     if ~ishandle(1); figure(1); else set(0,'CurrentFigure',1); end; clf(1);
