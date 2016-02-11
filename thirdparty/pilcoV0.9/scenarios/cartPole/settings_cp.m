@@ -113,7 +113,7 @@ cost.target = [0 0 0 pi]';                 % target state
 dynmodel.fcn = @gp1d;                % function for GP predictions
 dynmodel.train = @train;             % function to train dynamics model
 dynmodel.induce = zeros(300,0,1);    % shared inducing inputs (sparse GP)
-trainOpt = [300 500];                % defines the max. number of line searches
+trainOpt = [500 750];                % defines the max. number of line searches
                                      % when training the GP dynamics models
                                      % trainOpt(1): full GP,
                                      % trainOpt(2): sparse GP (FITC)

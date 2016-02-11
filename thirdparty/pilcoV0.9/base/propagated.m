@@ -64,10 +64,6 @@ X = reshape(1:D0*D0,[D0 D0]); XT = X'; Sds = (Sds + Sds(:,XT(:)))/2;
 % 1) Augment state distribution with trigonometric functions ------------------
 i = 1:D0; j = 1:D0; k = D0+1:D1;
 [M(k) S(k,k) C mdm sdm Cdm mds sds Cds] = gTrig(M(i), S(i,i), angi);
-disp('mx:')
-M(i)
-disp('Sx:')
-S(i,i)
 
 [S Mdm Mds Sdm Sds] = ...
   fillIn(S,C,mdm,sdm,Cdm,mds,sds,Cds,Mdm,Sdm,Mds,Sds,[ ],[ ],[ ],i,j,k,D3);
@@ -110,7 +106,6 @@ X = reshape(1:D0*D0,[D0 D0]); XT = X';                          % symmetrize dS
 dSdm = (dSdm + dSdm(XT(:),:))/2; dMds = (dMds + dMds(:,XT(:)))/2;
 dSds = (dSds + dSds(XT(:),:))/2; dSds = (dSds + dSds(:,XT(:)))/2;
 dSdp = (dSdp + dSdp(XT(:),:))/2;
-pause;
 
 % A1) Separate multiple dynamics models ---------------------------------------
 function [dyn i k] = sliceModel(dynmodel,n,ii,D1,D2,D3) % separate sub-dynamics
