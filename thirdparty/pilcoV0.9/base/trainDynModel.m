@@ -21,7 +21,6 @@ dynmodel.inputs = [xaug(:,dyni) x(:,end-Du+1:end)];     % use dyni and ctrl
 dynmodel.targets = y(:,dyno);
 dynmodel.targets(:,difi) = dynmodel.targets(:,difi) - x(:,dyno(difi));
 
-%dynmodel = dynmodel.train(dynmodel, plant, trainOpt);  %  train dynamics GP
 
 dynmodel.hyp = [ 5.509997626011774,   5.695797298947197,   5.692015197025450,   5.638201671096178;
                  2.172712533907143,   4.666315918776204,   4.612552250383755,   4.942292180454226;
@@ -31,6 +30,7 @@ dynmodel.hyp = [ 5.509997626011774,   5.695797298947197,   5.692015197025450,   
                  4.069820471633279,   3.013197670171895,   2.934665512611971,   3.616775778040698;
                 -0.984097642284717,   0.137890342258600,   1.299603816102084,  -0.611523812016797;
                 -4.115382429098694,  -4.115897287345494,  -3.168863634366222,  -4.247869488525884];
+%dynmodel = dynmodel.train(dynmodel, plant, trainOpt);  %  train dynamics GP
 % display some hyperparameters
 Xh = dynmodel.hyp;
 % noise standard deviations

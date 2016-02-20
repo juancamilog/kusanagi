@@ -56,19 +56,14 @@ else                                               % otherwise, get derivatives
   for t = 1:H                                  % for all time steps in horizon
     [m, S, dmdmO, dSdmO, dmdSO, dSdSO, dmdp, dSdp] = ...
       plant.prop(m, S, plant, dynmodel, policy); % get next state
-    dmdp = dmdmO*dmOdp + dmdSO*dSOdp + dmdp
-    dSdp = dSdmO*dmOdp + dSdSO*dSOdp + dSdp
-    dmdp
-    dSdp
+    dmdp = dmdmO*dmOdp + dmdSO*dSOdp + dmdp;
+    dSdp = dSdmO*dmOdp + dSdSO*dSOdp + dSdp;
     
     [L(t), dLdm, dLdS] = cost.fcn(cost, m, S);              % predictive cost
     L(t) = cost.gamma^t*L(t);                                      % discount
-    dp = dp + cost.gamma^t*( dLdm(:)'*dmdp + dLdS(:)'*dSdp )';
-    
+    dpt = cost.gamma^t*( dLdm(:)'*dmdp + dLdS(:)'*dSdp )';
+    dp = dp + dpt;
     dmOdp = dmdp; dSOdp = dSdp;                                 % bookkeeping
-    pause;
   end
-  pause;
 end
-
 J = sum(L); dJdp = rewrap(policy.p, dp);

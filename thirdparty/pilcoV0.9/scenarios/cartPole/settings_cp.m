@@ -21,7 +21,7 @@
 
 %rand('seed',1); randn('seed',1);
 %format short; format compact;
-format long;
+format longE;
 py.numpy.random.seed(int64(31337));
 % include some paths
 try
@@ -69,7 +69,7 @@ H = ceil(T/dt);                    % prediction steps (optimization horizon)
 mu0 = [0 0 0 0]';                  % initial state mean
 S0 = diag([0.1 0.1 0.1 0.1].^2);   % initial state covariance
 N = 15;                            % number controller optimizations
-J = 5;                             % initial J trajectories of length H
+J = 4;                             % initial J trajectories of length H
 K = 1;                             % no. of initial states for which we optimize
 nc = 10;                          % number of controller basis functions
 

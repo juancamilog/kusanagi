@@ -90,14 +90,13 @@ for n=1:Nf                               % potentially multiple dynamics models
   
   [S Mdm Mds Sdm Sds Mdp Sdp] = ...
     fillIn(S,C,mdm,sdm,Cdm,mds,sds,Cds,Mdm,Sdm,Mds,Sds,Mdp,Sdp,[ ],i,j,k,D3);
-  
   j = [j k];                                   % update 'previous' state vector
 end
+
 
 % 4) Compute distribution of the next state -----------------------------------
 P = [zeros(D0,D2) eye(D0)]; P(difi,difi) = eye(length(difi));  P = sparse( P);
 Mnext = P*M; Snext = P*S*P'; Snext = (Snext+Snext')/2;
-
 PP = kron(P,P);
 dMdm =  P*Mdm; dMds =  P*Mds; dMdp =  P*Mdp;
 dSdm = PP*Sdm; dSds = PP*Sds; dSdp = PP*Sdp;
