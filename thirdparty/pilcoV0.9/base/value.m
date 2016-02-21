@@ -67,3 +67,9 @@ else                                               % otherwise, get derivatives
   end
 end
 J = sum(L); dJdp = rewrap(policy.p, dp);
+
+J
+dJdp.hyp
+dJdp.inputs
+dJdp.targets
+pause

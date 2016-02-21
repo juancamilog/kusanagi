@@ -43,7 +43,7 @@ if isnumeric(p), p = struct('length', p); end             % convert p to struct
 if p.length > 0, p.S = 'linesearch #'; else p.S = 'function evaluation #'; end;
 x = unwrap(X);                                % convert initial guess to vector
 if ~isfield(p,'method'), if length(x) > 1000, p.method = @LBFGS;
-                         else p.method = @LBFGS; end; end   % set default method
+                         else p.method = @BFGS; end; end   % set default method
 if ~isfield(p,'verbosity'), p.verbosity = 1; end   % default 1 line text output
 if ~isfield(p,'MFEPLS'), p.MFEPLS = 10; end    % Max Func Evals Per Line Search
 if ~isfield(p,'MSR'), p.MSR = 100; end                % Max Slope Ratio default
