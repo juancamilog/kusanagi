@@ -80,6 +80,7 @@ if isfield(gpmodel,'induce')            % are we using a sparse approximation?
     gpmodel.induce = zeros(M,D,uE);                            % allocate space
     iter = 3*iter; % train a lot for the first time (it's still cheap!)
     [cidx, ctrs] = kmeans(gpmodel.inputs, M); % kmeans: initialize pseudo inputs
+    ctrs
     for i = 1:uE
 %       j = randperm(N);
 %       gpmodel.induce(:,:,i) = gpmodel.inputs(j(1:M),:);       % random subset
