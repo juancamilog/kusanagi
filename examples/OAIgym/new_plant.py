@@ -110,7 +110,7 @@ class OAIPlant(Plant):
 		self.u = np.array(u,dtype=np.float64)
 
 	def reset_state(self):
-	        self.done = False
+        self.done = False
 		self.env.reset()
 
 	def setEnv(self, env):

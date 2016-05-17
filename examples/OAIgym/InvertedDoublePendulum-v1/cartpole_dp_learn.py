@@ -37,7 +37,7 @@ if __name__ == '__main__':
     x0, _ = plant.get_state()
     # initialize policy
     angle_dims = [] #
-    policy = RBFPolicy(x0,S0,[20],200, angle_dims)
+    policy = RBFPolicy(x0,S0,[1],200, angle_dims)
 
     # initialize cost function
     cost_parameters = {}
@@ -86,4 +86,4 @@ if __name__ == '__main__':
         # save latest state of the learner
         learner.save()
     
-    draw_cp.stop()
+    #draw_cp.stop()
