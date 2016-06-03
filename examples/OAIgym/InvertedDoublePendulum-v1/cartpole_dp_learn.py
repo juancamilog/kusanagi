@@ -9,6 +9,7 @@ from shell.plant import SerialPlant
 from ghost.control import RBFPolicy
 from examples.OAIgym.new_plant import Plant, OAIPlant
 from shell.double_cartpole import DoubleCartpole, DoubleCartpoleDraw, double_cartpole_loss_openAI as double_cartpole_loss
+from utils import plot_results
 
 if __name__ == '__main__':
     #np.random.seed(31337)
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     model_parameters['l3'] = 0.6#
     model_parameters['b'] = 0.1
     model_parameters['g'] = 9.82
-    x0 = [0,0,0,1,1,0,0,0,0,0,0] #                                              # initial state mean ( x, dx, dtheta1, dtheta2, theta1, theta2
+    x0 = [0,0,1,1,0,0,0,0,0,0,0] #                                              # initial state mean ( x, dx, dtheta1, dtheta2, theta1, theta2
     S0 = np.eye(11)*(0.1**2) 
     measurement_noise = np.diag(np.ones(len(x0))*0.01**2) 
 
@@ -37,12 +38,12 @@ if __name__ == '__main__':
     x0, _ = plant.get_state()
     # initialize policy
     angle_dims = [] #
-    policy = RBFPolicy(x0,S0,[20],200, angle_dims)
+    policy = RBFPolicy(x0,S0,[1],200, angle_dims)
 
     # initialize cost function
     cost_parameters = {}
     cost_parameters['angle_dims'] = angle_dims
-    cost_parameters['target'] = [0,0,0,1,1,0,0,0,0,0,0] #
+    cost_parameters['target'] = [0,0,1,1,0,0,0,0,0,0,0] #
     cost_parameters['width'] = 0.5
     cost_parameters['expl'] = 0.0
     cost_parameters['pendulum_lengths'] = [model_parameters['l2'],model_parameters['l3']]
@@ -66,6 +67,7 @@ if __name__ == '__main__':
         for i in xrange(J):
             plant.reset_state()
             learner.apply_controller(H=T,random_controls=True)
+
  #   else:
  #       plant.reset_state()
  
@@ -81,9 +83,12 @@ if __name__ == '__main__':
 
         # execute it on the robot564,
         plant.reset_state()
-        learner.apply_controller(H=T)
+        experience_data = learner.apply_controller(H=T)
+
+        # plot results
+        plot_results(learner)
 
         # save latest state of the learner
         learner.save()
     
-    draw_cp.stop()
+    sys.exit(0)
