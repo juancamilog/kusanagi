@@ -15,14 +15,19 @@ def linear_loss(mx,Sx,params,absolute=True):
 
     return m_cost, s_cost
 
-def quadratic_loss(mx,Sx,params):
+def quadratic_loss(mx,Sx,u=None,params):
     # Quadratic penalty function
     Q = T.constant(params['Q'],dtype=mx.dtype)
     target = T.constant(params['target'],dtype=mx.dtype)
     delta = mx-target
     deltaQ = delta.T.dot(Q)
-    SxQ = Sx.dot(Q)
-    m_cost = T.sum(SxQ) + deltaQ.dot(delta)
+    SxQ = Sx.dot(Q)  
+    if u is None:
+        m_cost = T.sum(Sx*Q) + deltaQ.dot(delta)
+    else:
+        m_cost = T.sum(Sx*Q) + deltaQ.dot(delta)
+        R = T.constant(params['R'],dtype=mx.dtype)
+        m_cost = m_cost + T.transpose(u)*R*u
     s_cost = 2*T.sum(SxQ.dot(SxQ)) + 4*deltaQ.dot(Sx).dot(deltaiQ.T)
 
     return m_cost, s_cost

@@ -38,7 +38,7 @@ class PDDP(EpisodicLearner):
             n = Sxa.shape[0]; Da = Sxa.shape[1]; U = u.size
             idimsa = Da + U
             mxu = theano.tensor.concatenate([mxa,u])
-            Sxu = theano.tensor.zeros((idimsa,idimsa))
+            Sxu = theano.tensor.zeros((idimsa,idimsa))[1]
             Sxu = theano.tensor.set_subtensor(Sxu[:Da,:Da], Sxa)
 
             # state control covariance without angle dimensions
@@ -73,19 +73,60 @@ class PDDP(EpisodicLearner):
         
 
         # For this, you'll need to read how theano.scan and theano.tensor.grad work ( look at pilco.py for an example )
-        def forward_dynamics(args):
+        def forward_dynamics(mx, Sx):
             # TODO use the rollout single step file to do the forward dynamics
             # this should return the list of all matrices (F_k)^u and (F_k)^x
-            # we need: (d mx_next)/(d mx), (d Sx_next)/(d mx), (d mx_next)/(d Sx), (d Sx_next)/(d Sx), (d mx_next)/(d u_prev), (d Sx_next)/(d u_prev)
             # ( Eq. (11) )
-            pass
+            [mx_next,Sx_next,u_prev] = rollout_single_step(mx, Sx)
+            deriv1 = theano.tensor.jacobian(mx_next, mx)
+            deriv2 = theano.tensor.jacobian(Sx_next, mx)
+            deriv3 = theano.tensor.jacobian(mx_next, Sx)
+            deriv4 = theano.tensor.jacobian(Sx_next, Sx)
+            deriv5 = theano.tensor.jacobian(mx_next, u_prev)
+            deriv6 = theano.tensor.jacobian(Sx_next, u_prev)
+            Fx = theano.tensor.matrix('Fx')
+            Fu = theano.tensor.matrix('Fu')
 
-        def backward_propagation(args): 
+            deriv1_rows = deriv1.shape[0]; deriv2_rows = deriv2.shape[0]
+            Fx_dims = deriv1_rows + deriv2_rows
+            Fx = theano.tensor.zeros((Fx_dims,Fx_dims))
+            Fx = theano.tensor.set_subtensor(Fx[:deriv1_rows,:deriv1_rows], deriv1)
+            Fx = theano.tensor.set_subtensor(Fx[deriv1_rows:,:deriv1_rows], deriv2)
+            Fx = theano.tensor.set_subtensor(Fx[:deriv1_rows,deriv1_rows:], deriv3)
+            Fx = theano.tensor.set_subtensor(Fx[deriv1_rows:,deriv1_rows:], deriv4)
+            
+            Fu = theano.tensor.concatenate([deriv5,deriv6])
+
+            return [Fx, Fu]
+
+        def backward_propagation(mx,Sx,u,V,Vx,Vxx,Fx,Fu): 
             #TODO compute Q_t and the associated L_t and I_t
             # ( Eq. (17) ). Use self.cost_symbolic(mx,Sx) to get the cost of the current state. We
             # might need to create a new cost function that takes u as an optional input, so we can call self.cost_symbolic(mx,Sx,u)
             # you only need to use the mean of the cost to compute the derivatives ( See the paragraph after Eq 13 )
-            pass
+            # Here C is used in place of script L
+            C, _ = self.cost_symbolic(mx,Sx)
+            Cx = theano.tensor.jacobian(C, mx)
+            Cxx = theano.tensor.jacobian(Cx, mx)
+            Cu = theano.tensor.jacobian(C,u)
+            Cux = theano.tensor.jacobian(Cu,x)
+            Cuu = theano.tensor.jacobian(Cu,u)
+            # Lu, Lux, and Lxx are all zeroes since cost function doesn't (yet) use actions
+            Qx = Cx + Vx*Fx
+            Qu = Cu + Vx*Fu
+            Qxx = Cxx + theano.tensor.transpose(Fx)*Vxx*Fx
+            Qux = Cux + theano.tensor.transpose(Fu)*Vxx*Fx
+            Quu = Cuu + theano.tensor.transpose(Fu)*Vxx*Fu
+
+            I = -theano.tensor.nlinalg.MatrixPinv(Quu)*Qu
+            L = -theano.tensor.nlinalg.MatrixPinv(Quu)*Qux
+
+            V_prev = V + Qu*I
+            Vx_prev = Qx + Qu*L
+            Vxx_prev = Qxx + Qxu*L
+
+            return [V_prev, Vx_prev, Vxx_prev, I, L]
+
 
     def train_dynamics(self):
         print_with_stamp('Training dynamics model',self.name)
