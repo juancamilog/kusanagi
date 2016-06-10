@@ -1,5 +1,5 @@
 import numpy as np
-from utils import print_with_stamp,gTrig_np,gTrig2
+from utils import print_with_stamp, gTrig_np, gTrig2
 from ghost.learners.EpisodicLearner import *
 from ghost.regression.GPRegressor import GP_UI
 import theano
@@ -74,6 +74,8 @@ class PDDP(EpisodicLearner):
 
         # For this, you'll need to read how theano.scan and theano.tensor.grad work ( look at pilco.py for an example )
         def forward_dynamics(mx, Sx):
+            ''' This computes the Jacobian matrices Fu and Fx which satisfy the first order expansion of the dynamics.
+            We use a Gaussian belief augmented state vector to incorporate uncertainty.'''
             # TODO use the rollout single step file to do the forward dynamics
             # this should return the list of all matrices (F_k)^u and (F_k)^x
             # ( Eq. (11) )
@@ -97,7 +99,9 @@ class PDDP(EpisodicLearner):
             
             Fu = theano.tensor.concatenate([deriv5,deriv6])
 
-            return [Fx, Fu]
+            z_next = theano.tensor.transpose(theano.tensor.concatenate(mx_next,theano.tensor.flatten(Sx_next)))
+
+            return [Fx, Fu, z_next]
 
         def backward_propagation(mx,Sx,u,V,Vx,Vxx,Fx,Fu): 
             #TODO compute Q_t and the associated L_t and I_t
@@ -111,7 +115,6 @@ class PDDP(EpisodicLearner):
             Cu = theano.tensor.jacobian(C,u)
             Cux = theano.tensor.jacobian(Cu,x)
             Cuu = theano.tensor.jacobian(Cu,u)
-            # Lu, Lux, and Lxx are all zeroes since cost function doesn't (yet) use actions
             Qx = Cx + Vx*Fx
             Qu = Cu + Vx*Fu
             Qxx = Cxx + theano.tensor.transpose(Fx)*Vxx*Fx
@@ -126,6 +129,16 @@ class PDDP(EpisodicLearner):
             Vxx_prev = Qxx + Qxu*L
 
             return [V_prev, Vx_prev, Vxx_prev, I, L]
+
+        def locally_optimal_control(I, L, u_bar, z_bar, z):
+            #Here we represent the calulcation of deltau (Eq. 16) and its usage to compute u = u_bar + delta_u
+            delta_z = z - z_bar
+            delta_u = I + L*(delta_z)
+            u_new = u_bar + delta_u
+            return u_new
+
+
+        def run_DDP():
 
 
     def train_dynamics(self):

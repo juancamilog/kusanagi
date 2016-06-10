@@ -157,12 +157,25 @@ class LocalLinearPolicy:
         return u_t + b_t + A_t.dot(z - z_t)
 
     def get_params(self, symbolic=False):
+        #TODO
         if symbolic:
             pass
         return self.model.get_params(symbolic)
 
-    def set_params(self,params):
-        self.model.set_params(params)
+    def set_params(self,Ain,Bin,uin,zin):
+        self.A_= Ain.astype(theano.config.floatX)
+        self.A.set_value(self.A_,borrow=True)
+
+        self.B_= Ain.astype(theano.config.floatX)
+        self.B.set_value(self.B_,borrow=True)
+
+        self.u_= uin.astype(theano.config.floatX)
+        self.u.set_value(self.u_,borrow=True)
+
+        self.z_= zin.astype(theano.config.floatX)
+        self.z.set_value(self.z_,borrow=True)
+
+        self.model.set_params(params) # ?????
 
     def save(self):
         self.model.save()

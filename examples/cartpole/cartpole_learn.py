@@ -1,6 +1,5 @@
 import atexit
 import signal,sys
-#sys.path.append('/home/adaptation/achatr/Desktop/Summer2016/PILCO_clone/kusanagi')
 import numpy as np
 from functools import partial
 from ghost.learners.PILCO import PILCO
