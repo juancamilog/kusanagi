@@ -99,9 +99,10 @@ class PDDP(EpisodicLearner):
             
             Fu = theano.tensor.concatenate([deriv5,deriv6])
 
-            z_next = theano.tensor.transpose(theano.tensor.concatenate(mx_next,theano.tensor.flatten(Sx_next)))
+            #z_next = theano.tensor.transpose(theano.tensor.concatenate(mx_next,theano.tensor.flatten(Sx_next)))
 
-            return [Fx, Fu, z_next]
+            #return [Fx, Fu, z_next]
+            return [Fx, Fu]
 
         def backward_propagation(mx,Sx,u,V,Vx,Vxx,Fx,Fu): 
             #TODO compute Q_t and the associated L_t and I_t
@@ -139,6 +140,18 @@ class PDDP(EpisodicLearner):
 
 
         def run_DDP():
+        	#STEP 1: Use forward dynamics to generate Fx and Fu for each timestep. Requires the state from 0 to T
+
+        	#STEP 2: Use backward propagation to create I and L for each timestep which is used to improve the control. For this we require state and action
+        	# 		 at each timestep, Fx and Fu at each timestep, and V, Vx, Vxx from the timestep following the current one. We initialize the first V, Vx, Vxx at time T
+        	# 		 to (Lux*I), (Lx + Lux*L) and (Lxx + Lux*L) respectively. 
+
+        	#STEP 3: Forward propagate to get new optimal trajectory using new I and L. Our first action's delta_u is initialized as the matrix I and we calculate the
+        	#		 t+1th step using the change between the nominal state z_bar and the new state z, and I and L to get delta_u for this state's action. For this we will
+        	#		 need to use rollout_single_step without the policy.evaluate step, and instead use the new optimal action. This should return the sequence of states and
+        	#		 actions that correspond to the new optimal trajectory. 
+
+        	#STEP 4: Check for convergence??? If we have not converged, set the latest optimal trajectory to be the new nominal trajectory and restart at step one.
 
 
     def train_dynamics(self):
