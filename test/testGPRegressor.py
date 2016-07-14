@@ -4,11 +4,11 @@ from utils import gTrig2_np, print_with_stamp
 from scipy.signal import convolve2d
 from time import time
 
-def test_random(gp_type='GP',angi=[0,1]):
+def test_random(gp_type='GP',angi=[]):
     # test function
     def f(X):
         #return X[:,0] + X[:,1]**2 + np.exp(-0.5*(np.sum(X**2,1)))
-        return np.exp(-500*(np.sum(0.0001*(X**2),1)))*np.sin(X.sum(1))
+        return np.exp(-0.5*(np.sum((X**2),1)))*np.sin(X.sum(1))
 
     n_samples = 250
     n_test = 100
@@ -301,4 +301,4 @@ if __name__=='__main__':
     #test_K_means()
     #test_CartpoleDyn()
     #test_angle()
-    test_random('GP')
+    test_random('SSGP')

@@ -97,7 +97,7 @@ class RBFPolicy(RBFGP):
         # set the initial log hyperparameters (1 for linear dimensions, 0.7 for angular)
         l0 = np.hstack([np.ones(self.m0.size-len(self.angle_dims)),0.7*np.ones(2*len(self.angle_dims)),1,0.01])
         self.set_loghyp(np.log(np.tile(l0,(self.maxU.size,1))))
-        self.init_loss()
+        self.init_loss(cache_vars=False)
         self.init_predict()
 
     def evaluate(self, m, s=None, t=None, derivs=False, symbolic=False):

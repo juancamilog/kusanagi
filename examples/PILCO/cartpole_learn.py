@@ -3,7 +3,7 @@ import signal,sys,os
 import numpy as np
 import utils
 from functools import partial
-from ghost.regression.GP import SSGP_UI
+from ghost.regression.GP import SPGP_UI,SSGP_UI,GP_UI
 from ghost.regression.NN import NN
 from ghost.learners.PILCO import PILCO
 from shell.cartpole import Cartpole, CartpoleDraw, cartpole_loss
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     policy_params['maxU'] = [10]
     # dynamics model
     dynmodel_params = {}
-    dynmodel_params['n_basis'] = 100
+    #dynmodel_params['n_basis'] = 100
     #dynmodel_params['hidden_dims'] = [50,50,50]
     # cost function
     cost_params = {}
@@ -71,8 +71,6 @@ if __name__ == '__main__':
         learner.init_rollout(derivs=False)
         plot_results(learner)
 
-    learner.plant.reset_state()
-    learner.apply_controller()
     # learning loop
     for i in xrange(N):
         # train the dynamics models given the collected data
