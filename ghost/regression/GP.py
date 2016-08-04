@@ -1002,8 +1002,11 @@ class SSGP(GP):
         retvars = super(SSGP,self).get_params(symbolic=False)
         retvars.append(self.w)
         if not symbolic:
-            retvars = [ r.get_value(borrow=True) for r in retvars]
-        return retvars
+            try:
+                retvars1 = [ r.get_value(borrow=True) for r in retvars]
+                return retvars1
+            except AttributeError:
+                return retvars
 
     def loss_ss(self, params, parameter_shapes):
         loghyp,w = utils.unwrap_params(params,parameter_shapes)

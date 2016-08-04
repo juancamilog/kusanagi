@@ -79,7 +79,7 @@ class PILCO(EpisodicLearner):
 
     def save_rollout(self):
         ''' Saves the compiled rollout and policy_gradient functions, along with the associated shared variables from the dynamics model and policy. The shared variables from the dynamics model adn the policy will be replaced with whatever is loaded, to ensure that the compiled rollout and policy_gradient functions are consistently updated, when the parameters of the dynamics_model and policy objects are changed. Since we won't store the latest state of these shared variables here, we will copy the values of the policy and dynamics_model parameters into the state of the shared variables. If the policy and dynamics_model parameters have been updated, we will need to load them before calling this function.'''
-        sys.setrecursionlimit(100000000000)
+        sys.setrecursionlimit(100000)
         path = os.path.join(utils.get_output_dir(),self.filename+'_rollout.zip')
         with open(path,'wb') as f:
             utils.print_with_stamp('Saving compiled rollout to %s_rollout.zip'%(self.filename),self.name)
@@ -294,7 +294,7 @@ class PILCO(EpisodicLearner):
     def rollout(self, mx0, Sx0, H_steps, discount, symbolic=False):
         ''' Function that ensures the compiled rollout function is initialised before we can call it'''
         if self.rollout_fn is None:
-            self.compile_rollout()
+            self.compile_rollout(should_save_to_disk=True)
 
         # update shared vars
         self.mx0.set_value(mx0)
@@ -308,7 +308,7 @@ class PILCO(EpisodicLearner):
     def policy_gradient(self, mx0, Sx0, H_steps, discount):
         ''' Function that ensures the compiled policy gradients function is initialised before we can call it'''
         if self.policy_gradient_fn is None:
-            self.compile_policy_gradients()
+            self.compile_policy_gradients(should_save_to_disk=True)
 
         # update shared vars
         self.mx0.set_value(mx0)
