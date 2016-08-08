@@ -68,8 +68,15 @@ class EpisodicLearner(object):
 
     def load(self, output_folder=None,output_filename=None):
         # load policy and experience separately
-        self.policy.load(output_folder,output_filename)
-        self.experience.load(output_folder,output_filename)
+        policy_filename = None
+        if output_filename is not None:
+            policy_filename = output_filename + '_policy'
+        self.policy.load(output_folder,policy_filename)
+        
+        experience_filename = None
+        if output_filename is not None:
+            experience_filename = output_filename + '_experience'
+        self.experience.load(output_folder,experience_filename)
         
         # load learner state
         output_folder = utils.get_output_dir() if output_folder is None else output_folder
@@ -129,17 +136,33 @@ class EpisodicLearner(object):
 
     def save(self, output_folder=None,output_filename=None):
         # save policy and experience separately
-        self.policy.save(output_folder,output_filename)
+        if not os.path.exists(output_folder):
+            try:
+                os.makedirs(output_folder)
+            except OSError:
+                print 'Unable to create the directory: ' + output_folder
+                raise
+        
+        policy_filename = None
+        if output_filename is not None:
+            policy_filename = output_filename + '_policy'
+        self.policy.save(output_folder,policy_filename)
         if hasattr(self.experience, 'policy_history'):
             self.experience.policy_history.append(self.policy.get_params(symbolic=False))
-        self.experience.save(output_folder,output_filename)
+            
+        experience_filename = None
+        if output_filename is not None:
+            experience_filename = output_filename + '_experience'
+            
+        self.experience.save(output_folder,experience_filename)
 
         # save learner state
         sys.setrecursionlimit(100000)
-        if self.state_changed:
+        if self.state_changed or output_folder is not None or output_filename is not None:
             output_folder = utils.get_output_dir() if output_folder is None else output_folder
             [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
             path = os.path.join(output_folder,output_filename)
+
             with open(path,'wb') as f:
                 utils.print_with_stamp('Saving learner state to %s.zip'%(self.filename),self.name)
                 t_dump(self.get_state(),f,2)

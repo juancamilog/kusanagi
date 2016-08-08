@@ -5,6 +5,7 @@ import utils
 from functools import partial
 from ghost.regression.GP import SPGP_UI,SSGP_UI,GP_UI
 from ghost.regression.NN import NN
+from ghost.learners.EpisodicLearner import EpisodicLearner
 from ghost.learners.PILCO import PILCO
 from shell.cartpole import Cartpole, CartpoleDraw, cartpole_loss
 from ghost.control import RBFPolicy, NNPolicy
@@ -68,11 +69,12 @@ if __name__ == '__main__':
     #learner_params['params']['dynmodel']['hidden_dims'] = [100,100,100]
     #learner_params['params']['dynmodel']['n_basis'] = 100
     learner = PILCO(**learner_params)
-    learner.save('task1')
+    
     try:
-        learner.load('task1')
+        learner.load()
     except:
         pass
+    
     atexit.register(learner.stop)
 
     if learner.experience.n_samples() == 0: #if we have no prior data

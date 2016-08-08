@@ -51,13 +51,21 @@ class PILCO(EpisodicLearner):
     def save(self, output_folder=None,output_filename=None):
         ''' Saves the state of the learner, including the parameters of the policy and the dynamics model'''
         super(PILCO,self).save(output_folder,output_filename)
-        self.dynamics_model.save(output_folder,output_filename)
+        
+        dynamics_filename = None
+        if output_filename is not None:
+            dynamics_filename = output_filename + "_dynamics"
+        self.dynamics_model.save(output_folder,dynamics_filename)
 
     def load(self, output_folder=None,output_filename=None):
         ''' Loads the state of the learner, including the parameters of the policy and the dynamics model, and the compiled rollout functions'''
         super(PILCO,self).load(output_folder,output_filename)
-        self.dynamics_model.load(output_folder,output_filename)
-        self.load_rollout(output_folder,output_filename)
+        
+        dynamics_filename = None
+        if output_filename is not None:
+            dynamics_filename = output_filename + "_dynamics"
+        self.dynamics_model.load(output_folder,dynamics_filename)
+        #self.load_rollout(output_folder,output_filename)
     
     def set_state(self,state):
         ''' In addition to the EpisodicLearner state variables, saves the values of self.wrap_angles, self.next_episode, self.mx0 and self.Sx0'''

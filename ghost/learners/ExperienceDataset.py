@@ -74,7 +74,7 @@ class ExperienceDataset(object):
     
     def save(self, output_folder=None,output_filename=None):
         sys.setrecursionlimit(100000)
-        if self.state_changed:
+        if self.state_changed or output_folder is not None or output_filename is not None:
             output_folder = utils.get_output_dir() if output_folder is None else output_folder
             [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
             path = os.path.join(output_folder,output_filename)

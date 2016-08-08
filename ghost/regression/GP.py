@@ -19,6 +19,7 @@ import utils
 
 class GP(object):
     def __init__(self, X_dataset=None, Y_dataset=None, name='GP', idims=None, odims=None, profile=theano.config.profile, uncertain_inputs=False, hyperparameter_gradients=False, snr_penalty=SNRpenalty.SEard):
+        
         # theano options
         self.profile= profile
         self.compile_mode = theano.compile.get_default_mode()#.excluding('scanOp_pushout_seqs_ops')
@@ -58,6 +59,8 @@ class GP(object):
         # compiled functions
         self.predict_fn = None
         self.predict_d_fn = None
+        
+        self.dnlml=None
 
         # name of this class for printing command line output and saving
         self.name = name
@@ -335,7 +338,7 @@ class GP(object):
     
     def save(self, output_folder=None,output_filename=None):
         sys.setrecursionlimit(100000)
-        if self.state_changed:
+        if self.state_changed or output_folder is not None or output_filename is not None:
             output_folder = utils.get_output_dir() if output_folder is None else output_folder
             [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
             path = os.path.join(output_folder,output_filename)
@@ -348,10 +351,10 @@ class GP(object):
         # TODO get_all_shared_vars(as_dict=True) instead of individually going through all shared variables
         i = utils.integer_generator()
         self.X = state[i.next()]
-        self.N = self.X.get_value(borrow=True).shape[0]
+        self.N = 0 if self.X is None else self.X.get_value(borrow=True).shape[0]
         self.Y = state[i.next()]
         self.loghyp = state[i.next()]
-        self.logsn2 = 2*self.loghyp[:,-1]
+        self.logsn2 = None if self.loghyp is None else 2*self.loghyp[:,-1]
         self.iK = state[i.next()]
         self.L = state[i.next()]
         self.beta = state[i.next()]
