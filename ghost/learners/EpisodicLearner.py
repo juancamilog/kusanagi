@@ -83,7 +83,7 @@ class EpisodicLearner(object):
         [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
         path = os.path.join(output_folder,output_filename)
         with open(path,'rb') as f:
-            utils.print_with_stamp('Loading learner state from %s.zip'%(self.filename),self.name)
+            utils.print_with_stamp('Loading learner state from %s.zip'%(path),self.name)
             state = t_load(f)
             self.set_state(state)
         self.state_changed = False
@@ -136,7 +136,7 @@ class EpisodicLearner(object):
 
     def save(self, output_folder=None,output_filename=None):
         # save policy and experience separately
-        if not os.path.exists(output_folder):
+        if output_folder is not None and not os.path.exists(output_folder):
             try:
                 os.makedirs(output_folder)
             except OSError:
@@ -164,7 +164,7 @@ class EpisodicLearner(object):
             path = os.path.join(output_folder,output_filename)
 
             with open(path,'wb') as f:
-                utils.print_with_stamp('Saving learner state to %s.zip'%(self.filename),self.name)
+                utils.print_with_stamp('Saving learner state to %s.zip'%(path),self.name)
                 t_dump(self.get_state(),f,2)
             self.state_changed = False
 

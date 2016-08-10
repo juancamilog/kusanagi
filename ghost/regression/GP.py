@@ -331,7 +331,7 @@ class GP(object):
         [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
         path = os.path.join(output_folder,output_filename)
         with open(path,'rb') as f:
-            utils.print_with_stamp('Loading compiled GP from %s'%(self.filename),self.name)
+            utils.print_with_stamp('Loading compiled GP from %s'%(path),self.name)
             state = t_load(f)
             self.set_state(state)
         self.state_changed = False
@@ -343,7 +343,7 @@ class GP(object):
             [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
             path = os.path.join(output_folder,output_filename)
             with open(path,'wb') as f:
-                utils.print_with_stamp('Saving compiled GP with %d inputs and %d outputs to %s'%(self.D,self.E,path),self.name)
+                utils.print_with_stamp('Saving compiled GP with %d inputs and %d outputs to %s'%(self.D,self.E,path),path)
                 t_dump(self.get_state(),f,2)
             self.state_changed = False
 

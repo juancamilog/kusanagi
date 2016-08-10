@@ -67,7 +67,7 @@ class ExperienceDataset(object):
         [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
         path = os.path.join(output_folder,output_filename)
         with open(path,'rb') as f:
-            utils.print_with_stamp('Loading experience dataset from %s.zip'%(self.filename),self.name)
+            utils.print_with_stamp('Loading experience dataset from %s.zip'%(path),self.name)
             state = t_load(f)
             self.set_state(state)
         self.state_changed = False
@@ -79,7 +79,7 @@ class ExperienceDataset(object):
             [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '.zip')
             path = os.path.join(output_folder,output_filename)
             with open(path,'wb') as f:
-                utils.print_with_stamp('Saving experience dataset to %s.zip'%(self.filename),self.name)
+                utils.print_with_stamp('Saving experience dataset to %s.zip'%(path),self.name)
                 t_dump(self.get_state(),f,2)
             self.state_changed = False
 
