@@ -69,32 +69,40 @@ class PILCO(EpisodicLearner):
         self.dynamics_model.load(output_folder,dynamics_filename)
     
     def get_snapshot_content_paths(self, output_folder=None):
-		content_paths = super(PILCO,self).get_snapshot_content_paths(output_folder)
-		output_folder = utils.get_output_dir() if output_folder is None else output_folder
-		content_paths.append( os.path.join(output_folder,self.dynamics_model.filename+'.zip') )
-		return content_paths
+        content_paths = super(PILCO,self).get_snapshot_content_paths(output_folder)
+        output_folder = utils.get_output_dir() if output_folder is None else output_folder
+        content_paths.append( os.path.join(output_folder,self.dynamics_model.filename+'.zip') )
+        return content_paths
 
     def save_rollout(self, output_folder=None,output_filename=None):
         ''' Saves the compiled rollout and policy_gradient functions, along with the associated shared variables from the dynamics model and policy. The shared variables from the dynamics model adn the policy will be replaced with whatever is loaded, to ensure that the compiled rollout and policy_gradient functions are consistently updated, when the parameters of the dynamics_model and policy objects are changed. Since we won't store the latest state of these shared variables here, we will copy the values of the policy and dynamics_model parameters into the state of the shared variables. If the policy and dynamics_model parameters have been updated, we will need to load them before calling this function.'''
-        sys.setrecursionlimit(10000)
+        sys.setrecursionlimit(50000)
         output_folder = utils.get_output_dir() if output_folder is None else output_folder
         [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '_rollout.zip')
         path = os.path.join(output_folder,output_filename)
+        # append the zip extension
+        if not path.endswith('_rollout.zip'):
+            path = path+'_rollout.zip'
         with open(path,'wb') as f:
-            utils.print_with_stamp('Saving compiled rollout to %s_rollout.zip'%(self.filename),self.name)
+            utils.print_with_stamp('Saving compiled rollout to %s'%(path),self.name)
             # this saves the shared variables used by the rollout and policy gradients. This means that the zip file
             # will store the state of those variables from when this function is called
             # TODO save the shared variables form this class
             t_vars = [self.dynamics_model.get_state(), self.policy.get_state(), self.rollout_fn, self.policy_gradient_fn]
             t_dump(t_vars,f,2)
+            utils.print_with_stamp('Done saving.',self.name)
 
     def load_rollout(self, output_folder=None,output_filename=None):
         ''' Loads the compiled rollout and policy_gradient functions, along with the associated shared variables from the dynamics model and policy. The shared variables from the dynamics model adn the policy will be replaced with whatever is loaded, to ensure that the compiled rollout and policy_gradient functions are consistently updated, when the parameters of the dynamics_model and policy objects are changed. Since we won't store the latest state of these shared variables here, we will copy the values of the policy and dynamics_model parameters into the state of the shared variables. If the policy and dynamics_model parameters have been updated, we will need to load them before calling this function.'''
+        sys.setrecursionlimit(50000)
         output_folder = utils.get_output_dir() if output_folder is None else output_folder
         [output_filename, self.filename] = utils.sync_output_filename(output_filename, self.filename, '_rollout.zip')
         path = os.path.join(output_folder,output_filename)
+        # append the zip extension
+        if not path.endswith('_rollout.zip'):
+            path = path+'_rollout.zip'
         with open(path,'rb') as f:
-            utils.print_with_stamp('Loading compiled rollout from %s_rollout.zip'%(self.filename),self.name)
+            utils.print_with_stamp('Loading compiled rollout from %s'%(path),self.name)
             t_vars = t_load(f)
             # here we are loading state variables that are probably outdated, but that are tied to the compiled rollout and policy_gradient functions
             # we need to restore whatever value the dataset and loghyp variables had, which is why we call get_params before replace the state variables
@@ -110,6 +118,7 @@ class PILCO(EpisodicLearner):
             # parameters
             self.rollout_fn = t_vars[2]
             self.policy_gradient_fn = t_vars[3]
+            utils.print_with_stamp('Done loading.',self.name)
 
     # define the function for a single propagation step
     def propagate_state(self,mx,Sx):

@@ -79,7 +79,6 @@ class Loadable(object):
             self.state_changed = False
         except IOError:
             utils.print_with_stamp('Unable to load state from %s'%(path),self.name)
-
     
     def save(self, output_folder=None,output_filename=None):
         sys.setrecursionlimit(100000)

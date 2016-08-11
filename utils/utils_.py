@@ -61,11 +61,17 @@ def print_with_stamp(message, name=None, same_line=False, use_log=True):
             print ''
         sys.stdout.flush()
     else:
-        # TODO seek the last line of the file and delete it ( if same_line == True )
-        if not same_line:
-            write_mode = 'a' if os.path.isfile(logfile) else 'w'
-            with open(logfile,write_mode) as f:
-                f.write(out_str+'\n')
+        write_mode = 'a+'
+        with open(logfile,write_mode) as f:
+            if same_line:
+                f.seek(0,os.SEEK_END)
+                pos = f.tell() - 1
+                while pos > 0 and f.read(1) != os.linesep:
+                    pos = pos - 1
+                    f.seek(pos,os.SEEK_SET)
+                if pos >0:
+                    f.truncate()
+            f.write(out_str+os.linesep)
 
 def kmeanspp(X,k):
     import random
