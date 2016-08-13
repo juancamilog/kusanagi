@@ -66,11 +66,14 @@ def print_with_stamp(message, name=None, same_line=False, use_log=True):
             if same_line:
                 f.seek(0,os.SEEK_END)
                 pos = f.tell() - 1
-                while pos > 0 and f.read(1) != os.linesep:
+                c = f.read(1)
+                while pos > 0 and c != '\r' and c != os.linesep:
                     pos = pos - 1
                     f.seek(pos,os.SEEK_SET)
-                if pos >0:
+                    c = f.read(1)
+                if pos >0 and c == '\r':
                     f.truncate()
+                f.write('\r')
             f.write(out_str+os.linesep)
         os.system('chmod 777 %s'%(logfile))
 
