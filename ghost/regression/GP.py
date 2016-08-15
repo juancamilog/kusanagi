@@ -618,7 +618,7 @@ class SPGP(GP):
                 self.init_loss()
             utils.print_with_stamp('nlml SP: %s'%(np.array(self.nlml_sp())),self.name)
             m_loss_sp = utils.MemoizeJac(self.loss_sp)
-            opt_res = minimize(m_loss_sp, self.X_sp.get_value(), jac=m_loss_sp.derivative, method=self.min_method, tol=1e-10, options={'maxiter': 500})
+            opt_res = minimize(m_loss_sp, self.X_sp.get_value(), jac=m_loss_sp.derivative, method=self.min_method, tol=1e-10, options={'maxiter': 750})
             print ''
             X_sp = opt_res.x.reshape(self.X_sp.get_value(borrow=True).shape)
             self.set_X_sp(X_sp)
@@ -1012,7 +1012,7 @@ class SSGP(GP):
         p0 = [self.loghyp.get_value(),self.w.get_value()]
         parameter_shapes = [p.shape for p in p0]
         m_loss_ss = utils.MemoizeJac(self.loss_ss)
-        opt_res = minimize(m_loss_ss, utils.wrap_params(p0), args=parameter_shapes, jac=m_loss_ss.derivative, method=self.min_method, tol=1e-10, options={'maxiter': 500})
+        opt_res = minimize(m_loss_ss, utils.wrap_params(p0), args=parameter_shapes, jac=m_loss_ss.derivative, method=self.min_method, tol=1e-10, options={'maxiter': 750})
         print ''
         loghyp,w = utils.unwrap_params(opt_res.x,parameter_shapes)
         self.set_loghyp(loghyp)

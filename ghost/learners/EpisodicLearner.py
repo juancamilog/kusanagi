@@ -24,11 +24,8 @@ STOCHASTIC_MIN_METHODS = {'SGD': lasagne.updates.sgd,
                           'ADAM': lasagne.updates.adam}
 
 class EpisodicLearner(Loadable):
-    def __init__(self, params, plant_class, policy_class, cost_func=None, viz_class=None, experience = None, async_plant=False, name='EpisodicLearner', filename_prefix=None, learn_from_iteration=-1, task_name = None):
+    def __init__(self, params, plant_class, policy_class, cost_func=None, viz_class=None, experience = None, async_plant=False, name='EpisodicLearner', filename_prefix=None):
         self.name = name
-        if task_name is not None:
-            os.environ['KUSANAGI_RUN_OUTPUT'] = os.path.join(utils.get_output_dir(),task_name)
-            utils.print_with_stamp("Changed KUSANAGI_RUN_OUTPUT to %s"%(os.environ['KUSANAGI_RUN_OUTPUT']))
         # initialize plant
         if 'x0' not in params['plant']:
             params['plant']['x0'] = params['x0']
@@ -47,7 +44,6 @@ class EpisodicLearner(Loadable):
         self.viz = viz_class(self.plant) if viz_class is not None else None
         # initialize experience dataset
         self.experience = ExperienceDataset(filename_prefix=self.filename) if experience is None else experience
-        self.learn_from_iteration = learn_from_iteration #for usage of this parameter, see the load() method below
         # initialize learner state variables
         self.n_episodes = 0
         self.angle_idims = params['angle_dims'] if 'angle_dims' in params else []
@@ -58,7 +54,7 @@ class EpisodicLearner(Loadable):
         self.learning_rate = params['learning_rate'] if 'learning_rate' in params else 1.0
         self.min_method = params['min_method'] if 'min_method' in params else "L-BFGS-B"
         self.async_plant = async_plant
-        self.learning_iteration = 0;
+        self.learning_iteration = 0
         self.n_evals = 0
         self.realtime = params['realtime'] if 'realtime' in params else True
         
@@ -93,54 +89,6 @@ class EpisodicLearner(Loadable):
             if pi is None or pi.size == 0:
                 self.policy.set_default_parameters()
                 break
-        
-        '''USAGE OF LEARN_FROM_ITERATION
-        -1: Resume learning from most recent state
-        0: Restart learning completely (re-do random trials)
-        RANDOM : if you pass this string, you will keep the random trial data
-        n>0 : resume from policy n (currently does not keep experience from policy n having been applied, we need to apply_controller to get data from this policy)'''
-        
-        if self.learn_from_iteration != -1: #if we want to load from a specific iteration, revert policy and experience to what it was at that iter
-                if self.learn_from_iteration == 0:
-                    utils.print_with_stamp('Resetting data completely')
-                    self.experience.time_stamps = []
-                    self.experience.states = []
-                    self.experience.actions = []
-                    self.experience.immediate_cost = []
-                    self.experience.episode_labels = []
-                    self.experience.curr_episode = -1
-                    self.experience.policy_history = []
-                    self.experience.episode_labels = []
-                    self.policy.set_default_parameters()
-                elif not hasattr(self.experience, 'policy_history'):
-                    pass
-                else:
-                    utils.print_with_stamp('Loading from iteration %s and reverting datasets to that iteration'%(str(self.learn_from_iteration)))
-                    entry_num = 0
-                    try:
-                        while self.experience.episode_labels[entry_num] != self.learn_from_iteration:
-                            entry_num += 1
-                        # while self.experience.episode_labels[entry_num] == self.learn_from_iteration:
-                        #     entry_num += 1
-                    except IndexError:
-                        utils.print_with_stamp('ERROR: You are trying to load from an iteration that has not been performed. Press enter to continue by loading the most recent data, or CTRL-C to close.')
-                        raw_input()
-                        entry_num -= 1
-                        self.learn_from_iteration = self.experience.episode_labels[entry_num]
-                    self.experience.time_stamps = self.experience.time_stamps[:entry_num]
-                    self.experience.states = self.experience.states[:entry_num]
-                    self.experience.actions = self.experience.actions[:entry_num]
-                    self.experience.immediate_cost = self.experience.immediate_cost[:entry_num]
-                    self.experience.episode_labels = self.experience.episode_labels[:entry_num]
-                    self.experience.curr_episode = entry_num-1
-                    if self.learn_from_iteration is not "RANDOM":
-                        self.policy.set_params(self.experience.policy_history[self.learn_from_iteration-1])
-                        self.experience.policy_history = self.experience.policy_history[:self.learn_from_iteration]
-                        self.learning_iteration = self.learn_from_iteration + 1
-                    else: 
-                        self.policy.set_default_parameters()
-                        self.experience.policy_history = []
-       
 
     def save(self, output_folder=None,output_filename=None):
         #initialize cost if neeeded
@@ -157,8 +105,6 @@ class EpisodicLearner(Loadable):
         if output_filename is not None:
             policy_filename = output_filename + '_policy'
         self.policy.save(output_folder,policy_filename)
-        if hasattr(self.experience, 'policy_history'):
-            self.experience.policy_history.append(self.policy.get_params(symbolic=False))
             
         experience_filename = None
         if output_filename is not None:
@@ -208,6 +154,16 @@ class EpisodicLearner(Loadable):
         #get name form the experience 
         self.experience.set_state(new_experience.get_state())
 
+    def set_episode(self,episode=-1):
+        if episode > 0:
+            utils.print_with_stamp('Setting current episode to %d'%(episode), self.name)
+            if episode == 0:
+                self.experience.reset()
+                self.policy.set_default_parameters()
+            elif episode <= self.experience.current_episode:
+                self.experience.truncate(episode)
+                self.policy.set_params(self.experience_dataset.policy_parameters[episode])
+
     def apply_controller(self,H=None,random_controls=False):
         '''
         Starts the plant and applies the current policy to the plant for a duration specified by H (in seconds). If  H is not set, it will run for self.H seconds. If the random_controls paramter is set to True, the current policy is ignored and random controls between [-self.policy.maxU, self.policy.maxU ] will be sent 
@@ -218,21 +174,21 @@ class EpisodicLearner(Loadable):
         '''
         if random_controls:
             policy = RandPolicy(self.policy.maxU)
+            p = []
         else:
             policy = self.policy
+            # initialize policy if needed
+            p = policy.get_params()
+            for pi in p:
+                if pi is None or pi.size == 0:
+                    policy.set_default_parameters()
+                    break
 
         #initialize cost if neeeded
         self.init_cost()
 
-        # initialize policy if needed
-        p = self.policy.get_params()
-        for pi in p:
-            if pi is None or pi.size == 0:
-                self.policy.set_default_parameters()
-                break
-
         # mark the start of the episode
-        self.experience.new_episode(random = random_controls, learning_iteration = self.learning_iteration)
+        self.experience.new_episode(policy_params=p)
 
         # start robot
         utils.print_with_stamp('Starting data collection run',self.name)
@@ -246,17 +202,15 @@ class EpisodicLearner(Loadable):
             self.viz.start()
 
         exec_time = time.time()
-        x_t, t0 = self.plant.get_state()
+        x_t, t = self.plant.get_state()
         Sx_t = np.zeros((x_t.shape[0],x_t.shape[0]))
         L_noise = np.linalg.cholesky(self.plant.noise)
         if self.plant.noise is not None:
             # randomize state
             x_t = x_t + np.random.randn(x_t.shape[0]).dot(L_noise);
-        t = t0
         
         H_steps = int(np.ceil(H/self.plant.dt))
         # do rollout
-        #while t <= t0 + H:
         for i in xrange(H_steps):
             # convert input angle dimensions to complex representation
             x_t_ = utils.gTrig_np(x_t[None,:], self.angle_idims).flatten()
@@ -269,7 +223,6 @@ class EpisodicLearner(Loadable):
                 c_t = self.evaluate_cost(x_t, Sx_t)
                 # append to experience dataset
                 self.experience.add_sample(t,x_t,u_t,c_t)
-                #print t,x_t,u_t,c_t[0]
             else:
                 # append to experience dataset
                 self.experience.add_sample(t,x_t,u_t,0)
@@ -284,7 +237,7 @@ class EpisodicLearner(Loadable):
                 if exec_time < self.plant.dt:
                     time.sleep(self.plant.dt-exec_time)
 
-            #  get robot state (this should ensure synchronicity by blocking until dt seconds have passed):
+            #  get robot state (this should ensure synchronization by blocking until dt seconds have passed):
             exec_time = time.time()
             x_t, t = self.plant.get_state()
             if self.plant.noise is not None:
@@ -299,7 +252,6 @@ class EpisodicLearner(Loadable):
         if self.evaluate_cost is not None:
             c_t = self.evaluate_cost(x_t, Sx_t)
             self.experience.add_sample(t,x_t,u_t,c_t)
-            #print t,x_t,u_t,c_t[0]
         else:
             self.experience.add_sample(t,x_t,u_t,0)
 

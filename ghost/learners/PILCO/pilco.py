@@ -12,16 +12,13 @@ from ghost.learners.EpisodicLearner import *
 from ghost.regression.GP import GP_UI, SPGP_UI, SSGP_UI
 
 class PILCO(EpisodicLearner):
-    def __init__(self, params, plant_class, policy_class, cost_func=None, viz_class=None, dynmodel_class=GP_UI, experience = None, async_plant=False, name='PILCO', filename_prefix=None, learn_from_iteration=-1, task_name = None):
+    def __init__(self, params, plant_class, policy_class, cost_func=None, viz_class=None, dynmodel_class=GP_UI, experience = None, async_plant=False, name='PILCO', filename_prefix=None):
         self.dynamics_model = None
         self.wrap_angles = params['wrap_angles'] if 'wrap_angles' in params else False
         self.rollout_fn=None
         self.policy_gradient_fn=None
         self.angle_idims = params['angle_dims']
         self.maxU = params['policy']['maxU']
-        if task_name is not None:
-            os.environ['KUSANAGI_RUN_OUTPUT'] = os.path.join(utils.get_output_dir(),task_name)
-            utils.print_with_stamp("Changed KUSANAGI_RUN_OUTPUT to %s"%(os.environ['KUSANAGI_RUN_OUTPUT']))
         # input dimensions to the dynamics model are (state dims - angle dims) + 2*(angle dims) + control dims
         x0 = np.array(params['x0'],dtype='float64').squeeze()
         S0 = np.array(params['S0'],dtype='float64').squeeze()
@@ -39,7 +36,7 @@ class PILCO(EpisodicLearner):
 
         # initialise parent class
         filename_prefix = name+'_'+self.dynamics_model.name if filename_prefix is None else filename_prefix
-        super(PILCO, self).__init__(params, plant_class, policy_class, cost_func,viz_class, experience, async_plant, name, filename_prefix,learn_from_iteration)
+        super(PILCO, self).__init__(params, plant_class, policy_class, cost_func,viz_class, experience, async_plant, name, filename_prefix)
         
         # create shared variables for rollout input parameters
         self.mx0 = theano.shared(x0.astype('float64'))

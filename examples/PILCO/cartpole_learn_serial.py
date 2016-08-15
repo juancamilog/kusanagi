@@ -1,71 +1,56 @@
 import atexit
-import signal,sys
-#sys.path.append('/home/adaptation/achatr/Desktop/Summer2016/PILCO_clone/kusanagi')
+import signal,sys,os
 import numpy as np
-from functools import partial
-from ghost.regression.GP import SSGP_UI
-from ghost.learners.PILCO import PILCO
+import utils
+from shell.cartpole import default_params
 from shell.plant import SerialPlant
-from shell.cartpole import Cartpole, CartpoleDraw, cartpole_loss
-from ghost.control import RBFPolicy
+from ghost.learners.PILCO import PILCO
+from ghost.regression.GP import SPGP_UI,SSGP_UI
+from ghost.regression.NN import NN
+from ghost.control import NNPolicy
 from utils import plot_results
 #np.random.seed(31337)
 np.set_printoptions(linewidth=500)
 
 if __name__ == '__main__':
-    # setup learner parameters
-    # general parameters
+    # setup output directory
+    utils.set_run_output_dir(os.path.join(utils.get_output_dir(),'cartpole_serial'))
+
     J = 4                                                                   # number of random initial trials
     N = 100                                                                 # learning iterations
-    maxU = [10]
-    learner_params = {}
-    learner_params['x0'] = [0,0,0,0]                                        # initial state mean
-    learner_params['S0'] = np.eye(4)*(0.1**2)                               # initial state covariance
-    learner_params['angle_dims'] = [3]                                      # angle dimensions
-    learner_params['H'] = 4.0                                               # control horizon
-    learner_params['discount'] = 1.0                                        # discoutn factor
-    # plant
-    plant_params = {}
-    plant_params['dt'] = 0.1
-    plant_params['params'] = {'l': 0.5, 'm': 0.5, 'M': 0.5, 'b': 0.1, 'g': 9.82}
-    plant_params['noise'] = np.diag(np.ones(len(learner_params['x0']))*0.01**2)   # model measurement noise (randomizes the output of the plant)
-    plant_params['maxU'] = maxU
-    plant_params['state_indices'] = [0,2,3,1]
-    plant_params['baud_rate'] = 4000000
-    plant_params['port'] = '/dev/ttyACM0'
-    # policy
-    policy_params = {}
-    policy_params['m0'] = learner_params['x0']
-    policy_params['S0'] = learner_params['S0']
-    policy_params['n_basis'] = 10
-    policy_params['maxU'] = maxU
-    # dynamics model
-    dynmodel_params = {}
-    dynmodel_params['n_basis'] = 100
-    # cost function
-    cost_params = {}
-    cost_params['target'] = [0,0,0,np.pi]
-    cost_params['width'] = 0.25
-    cost_params['expl'] = 0.0
-    cost_params['pendulum_length'] = plant_params['params']['l']
-
-    learner_params['plant'] = plant_params
-    learner_params['policy'] = policy_params
-    learner_params['dynmodel'] = dynmodel_params
-    learner_params['cost'] = cost_params
-
+    learner_params = default_params()
+    
     # initialize learner
-    learner = PILCO(learner_params, SerialPlant, RBFPolicy, cartpole_loss, dynmodel_class=SSGP_UI)#,viz=CartpoleDraw)
+    learner_params['dynmodel_class'] = SSGP_UI
+    learner_params['params']['dynmodel']['n_basis'] = 100
+    learner_params['plant_class'] = SerialPlant
+    learner_params['params']['plant']['maxU'] = learner_params['params']['policy']['maxU']
+    learner_params['params']['plant']['state_indices'] = [0,2,3,1]
+    learner_params['params']['plant']['baud_rate'] = 4000000
+    learner_params['params']['plant']['port'] = '/dev/ttyACM0'
+    #learner_params['min_method'] = 'ADAM'
+    #learner_params['dynmodel_class'] = NN
+    #learner_params['params']['dynmodel']['hidden_dims'] = [100,100,100]
+    learner = PILCO(**learner_params)
+    try:
+        learner.load(load_compiled_fns=True)
+        save_compiled_fns = False
+    except:
+        utils.print_with_stamp('Unable to load compiled fns','main')
+        save_compiled_fns = True
+
     atexit.register(learner.stop)
 
     if learner.experience.n_samples() == 0: #if we have no prior data
         # gather data with random trials
-        for i in xrange(J):
+        for i in xrange(J-1):
             learner.plant.reset_state()
             learner.apply_controller(random_controls=True)
+        learner.plant.reset_state()
+        learner.apply_controller()
     else:
         learner.plant.reset_state()
-        experience_data = learner.apply_controller()
+        learner.apply_controller()
         
         # plot results
         plot_results(learner)
@@ -80,12 +65,13 @@ if __name__ == '__main__':
 
         # execute it on the robot
         learner.plant.reset_state()
-        experience_data = learner.apply_controller()
+        learner.apply_controller()
 
         # plot results
         plot_results(learner)
 
         # save latest state of the learner
-        learner.save()
+        learner.save(save_compiled_fns=save_compiled_fns)
+        save_compiled_fns = False  # only need to save the compiled functions once
     
     sys.exit(0)

@@ -5,6 +5,52 @@ from ghost.cost import quadratic_saturating_loss
 from utils import print_with_stamp, gTrig_np, gTrig2
 from matplotlib import pyplot as plt
 
+def default_params():
+    # setup learner parameters
+    # general parameters
+    J = 4                                                                   # number of random initial trials
+    N = 100                                                                 # learning iterations
+    learner_params = {}
+    learner_params['x0'] = [0,0,0,0]                                        # initial state mean
+    learner_params['S0'] = np.eye(4)*(0.1**2)                               # initial state covariance
+    learner_params['angle_dims'] = [3]                                      # angle dimensions
+    learner_params['H'] = 4.0                                               # control horizon
+    learner_params['discount'] = 1.0                                        # discoutn factor
+    # plant
+    plant_params = {}
+    plant_params['dt'] = 0.1
+    plant_params['params'] = {'l': 0.5, 'm': 0.5, 'M': 0.5, 'b': 0.1, 'g': 9.82}
+    plant_params['noise'] = np.diag(np.ones(len(learner_params['x0']))*0.01**2)   # model measurement noise (randomizes the output of the plant)
+    # policy
+    policy_params = {}
+    policy_params['m0'] = learner_params['x0']
+    policy_params['S0'] = learner_params['S0']
+    policy_params['n_basis'] = 10
+    #policy_params['hidden_dims'] = [50,50,50]
+    policy_params['maxU'] = [10]
+    # dynamics model
+    dynmodel_params = {}
+    # cost function
+    cost_params = {}
+    cost_params['target'] = [0,0,0,np.pi]
+    cost_params['width'] = 0.25
+    cost_params['expl'] = 0.0
+    cost_params['pendulum_length'] = plant_params['params']['l']
+
+    learner_params['max_evals'] = 125
+    learner_params['conv_thr'] = 1e-10
+    learner_params['min_method'] = 'L-BFGS-B'
+    learner_params['realtime'] = True
+
+    learner_params['plant'] = plant_params
+    learner_params['policy'] = policy_params
+    learner_params['dynmodel'] = dynmodel_params
+    learner_params['cost'] = cost_params
+    from ghost.control import RBFPolicy
+    from ghost.regression.GP import GP_UI
+
+    return {'params': learner_params, 'plant_class': Cartpole, 'policy_class': RBFPolicy, 'cost_func': cartpole_loss, 'dynmodel_class': GP_UI}
+
 def cartpole_loss(mx,Sx,params, loss_func=quadratic_saturating_loss, u=None):
     angle_dims = params['angle_dims']
     cw = params['width']

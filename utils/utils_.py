@@ -384,15 +384,14 @@ def plot_results(learner,H=None):
     plt.gca().clear()
     iters = []
     cost_sums = []
-    for i in xrange(len(learner.experience.episode_labels)):
-        if learner.experience.episode_labels[i] != "RANDOM":
-            iters.append(learner.experience.episode_labels[i])
-            a = 0.0
-            for elem in learner.experience.immediate_cost[i]:
-                a += elem[0]
-            cost_sums.append(a)
-        if not iters:
-            print "No data to plot J vs. Iter#"
+    n_random = 0
+    for i in xrange(learner.experience.n_episodes()):
+        if not learner.experience.policy_parameters[i]:
+            iters.append(0)
+            n_random += 1
+        else:
+            iters.append(i-n_random)
+        cost_sums.append(np.array(learner.experience.immediate_cost[i]).sum())
     plt.plot(np.array(iters), np.array(cost_sums))
 
     plt.show(False)
