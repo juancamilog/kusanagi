@@ -23,7 +23,7 @@ class GP(Loadable):
         self.compile_mode = theano.compile.get_default_mode()#.excluding('scanOp_pushout_seqs_ops')
 
         # GP options
-        self.max_evals = kwargs['max_evals'] if 'max_evals' in kwargs else 150
+        self.max_evals = kwargs['max_evals'] if 'max_evals' in kwargs else 500
         self.conv_thr = kwargs['conv_thr'] if 'conv_thr' in kwargs else 1e-12
         self.min_method = kwargs['min_method'] if 'min_method' in kwargs else "L-BFGS-B"
         self.state_changed = True
