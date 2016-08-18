@@ -31,7 +31,7 @@ if __name__ == '__main__':
     env.render()
     plant = OAIPlant(discrete, model_parameters,x0,S0, dt, measurement_noise)
     plant.setEnv(env)
-    x0, _ = plant.get_state()
+    x0, _ = plant.get_plant_state()
     # initialize policy
     angle_dims = [3]                                                
     policy = RBFPolicy(x0,S0,maxU,10, angle_dims)

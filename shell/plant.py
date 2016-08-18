@@ -36,7 +36,7 @@ class Plant(object):
         if len(self.u.shape) < 2:
             self.u = self.u[:,None]
 
-    def get_state(self):
+    def get_plant_state(self):
         if self.angle_dims is None:
             return self.x.flatten(),self.t
         else:
@@ -273,7 +273,7 @@ class PlantDraw(object):
         current_t = -1
         while self.running.is_set():
             exec_time = time()
-            state, t = self.plant.get_state()
+            state, t = self.plant.get_plant_state()
             if t != current_t:
                 polling_pipe.send((state,t))
 
@@ -318,7 +318,7 @@ class LivePlot(PlantDraw):
         self.H = H
         self.angi = angi
         # get first measurement
-        state, t = plant.get_state()
+        state, t = plant.get_plant_state()
         self.data = np.array([state])
         self.t_labels = np.array([t])
         

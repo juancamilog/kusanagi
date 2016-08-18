@@ -4,8 +4,9 @@ import lasagne
 import numpy as np
 import time
 import utils
+from base.Loadable import Loadable
 
-class NN(object):
+class NN(Loadable):
     ''' Inefficient implementation of the dropout idea by Gal and Gharammani, with Gaussian distributed inputs'''
     def __init__(self,idims, odims, hidden_dims=[128,128], dropout_samples=250, uncertain_inputs=True, name='NN', profile=False):
         self.D = idims
@@ -36,6 +37,12 @@ class NN(object):
         self.compile_mode = theano.compile.get_default_mode()#.excluding('scanOp_pushout_seqs_ops')
 
         self.learn_noise = True
+        
+        # filename for saving
+        self.filename = '%s_%d_%d_%s_%s'%(self.name,self.idims,self.odims,theano.config.device,theano.config.floatX)
+        Loadable.__init__(self,name=name,filename=self.filename)
+        # register theanno functions and shared variables for saving
+        self.register_types([T.sharedvar.SharedVariable, theano.compile.function_module.Function])
     
     def get_all_shared_vars(self, as_dict=False):
         if as_dict:
@@ -275,15 +282,3 @@ class NN(object):
             elapsed_time = time.time() - start_time
             utils.print_with_stamp('iter: %d, loss: %E, elapsed: %E, sn2: %s'%(i,ret,elapsed_time, np.exp(self.logsn2.get_value())),self.name,True)
         print ''
-
-    def load(self):
-        pass
-
-    def save(self):
-        pass
-
-    def set_state(self,state):
-        pass
-
-    def get_state(self):
-        pass

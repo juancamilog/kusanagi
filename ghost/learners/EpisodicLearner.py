@@ -48,6 +48,7 @@ class EpisodicLearner(Loadable):
         self.n_episodes = 0
         self.angle_idims = params['angle_dims'] if 'angle_dims' in params else []
         self.H = params['H'] if 'H' in params else 10.0
+        self.dt = params['plant']['dt']
         self.discount = params['discount'] if 'discount' in params else 1.0
         self.max_evals = params['max_evals'] if 'max_evals' in params else 150
         self.conv_thr = params['conv_thr'] if 'conv_thr' in params else 1e-12
@@ -61,7 +62,7 @@ class EpisodicLearner(Loadable):
         self.realtime = params['realtime'] if 'realtime' in params else True
         
         Loadable.__init__(self,name=name,filename=self.filename)
-        self.register(['n_episodes','angle_idims','async_plant','evaluate_cost','H','discount','learning_iteration','n_evals'])
+        self.register(['n_episodes','angle_idims','async_plant', 'cost', 'evaluate_cost', 'H', 'dt', 'discount','learning_iteration','n_evals'])
 
         # try loading from file, initialize from scratch otherwise
         utils.print_with_stamp('Initialising new %s learner'%(self.name),self.name)
@@ -70,6 +71,8 @@ class EpisodicLearner(Loadable):
     def load(self, output_folder=None,output_filename=None):
         # load learner state
         super(EpisodicLearner,self).load(output_folder,output_filename)
+        self.plant.dt = self.dt
+        utils.print_with_stamp('Cost parameters: %s'%(self.cost.keywords['params']),self.name)
         
         # load policy and experience separately
         policy_filename = None
@@ -115,6 +118,7 @@ class EpisodicLearner(Loadable):
         self.experience.save(output_folder,experience_filename)
 
         # save learner state
+        self.dt = self.plant.dt
         super(EpisodicLearner,self).save(output_folder,output_filename)
 
     def load_snapshot(self, zip_filepath, output_folder=None, extract_folder=None):
@@ -146,6 +150,7 @@ class EpisodicLearner(Loadable):
         if not self.evaluate_cost:
             if self.cost:
                 utils.print_with_stamp('Compiling cost function',self.name)
+                utils.print_with_stamp('Cost parameters: %s'%(self.cost.keywords['params']),self.name)
                 mx = theano.tensor.vector('mx')
                 Sx = theano.tensor.matrix('Sx')
                 self.evaluate_cost = theano.function((mx,Sx),self.cost(mx,Sx), allow_input_downcast=True)
@@ -154,6 +159,11 @@ class EpisodicLearner(Loadable):
     
     def set_cost(self, new_cost_func, new_cost_params):
         ''' Replaces the old cost function with a new one (and recompiles it)'''
+        utils.print_with_stamp('Cost parameters: %s'%(self.cost.keywords['params']),self.name)
+        if self.cost is not None:
+            if self.cost.func == new_cost_func and self.cost.keywords['params'] == new_cost_params:
+                # do nothing, as the current cost has the same parameters
+                return
         self.cost = partial(new_cost_func, params=new_cost_params)
         self.evaluate_cost = None
         self.init_cost()
@@ -210,7 +220,7 @@ class EpisodicLearner(Loadable):
             self.viz.start()
 
         exec_time = time.time()
-        x_t, t = self.plant.get_state()
+        x_t, t = self.plant.get_plant_state()
         Sx_t = np.zeros((x_t.shape[0],x_t.shape[0]))
         L_noise = np.linalg.cholesky(self.plant.noise)
         if self.plant.noise is not None:
@@ -247,7 +257,7 @@ class EpisodicLearner(Loadable):
 
             #  get robot state (this should ensure synchronization by blocking until dt seconds have passed):
             exec_time = time.time()
-            x_t, t = self.plant.get_state()
+            x_t, t = self.plant.get_plant_state()
             if self.plant.noise is not None:
                 # randomize state
                 x_t = x_t + np.random.randn(x_t.shape[0]).dot(L_noise);

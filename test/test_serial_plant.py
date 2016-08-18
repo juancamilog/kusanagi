@@ -47,7 +47,7 @@ if __name__ == '__main__':
         #    u_t[0] = -A
         plant.apply_control(u_t)
         plant.step()
-        #print plant.get_state()
+        #print plant.get_plant_state()
         exec_time = time() - exec_time
         sleep(max(dt-exec_time,0))
 

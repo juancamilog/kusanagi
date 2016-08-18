@@ -39,7 +39,7 @@ class Plant(object):
         if len(self.u.shape) < 2:
             self.u = self.u[:,None]
 
-    def get_state(self):
+    def get_plant_state(self):
         return self.x.flatten(),self.t
     
     def run(self):
@@ -86,7 +86,7 @@ class OAIPlant(Plant):
         else:
             self.step = self.step_cont
 
-    def get_state(self):
+    def get_plant_state(self):
         return self.x.flatten(), self.t
 
     def step_discrete(self, dt = None):
@@ -269,7 +269,7 @@ class PlantDraw(object):
         while self.running:
             exec_time = time()
             # update the drawing from the plant state
-            state,t = self.plant.get_state()
+            state,t = self.plant.get_plant_state()
             updts = self.update(state,t)
             self.fig.canvas.restore_region(self.bg)
 
@@ -312,7 +312,7 @@ class LivePlot(PlantDraw):
         self.H = H
         self.angi = angi
         # get first measurement
-        state, t = plant.get_state()
+        state, t = plant.get_plant_state()
         self.data = np.array([state])
         self.t_labels = np.array([t])
         # initialize the patches to draw the cartpole
